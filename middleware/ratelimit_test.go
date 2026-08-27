@@ -129,7 +129,7 @@ func TestAPIKeyFn(t *testing.T) {
 
 	req2, _ := http.NewRequest("GET", "/", nil)
 	req2.RemoteAddr = "10.0.0.1:80"
-	
+
 	key2 := APIKeyFn(req2)
 	if key2 != "10.0.0.1" {
 		t.Errorf("expected fallback 10.0.0.1, got %s", key2)

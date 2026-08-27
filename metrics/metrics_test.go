@@ -8,11 +8,11 @@ import (
 
 func TestCounter(t *testing.T) {
 	c := &Counter{}
-	
+
 	if c.Value() != 0 {
 		t.Errorf("expected 0, got %d", c.Value())
 	}
-	
+
 	c.Inc()
 	if c.Value() != 1 {
 		t.Errorf("expected 1, got %d", c.Value())
@@ -26,7 +26,7 @@ func TestCounter(t *testing.T) {
 
 func TestMetricsHandler(t *testing.T) {
 	handler := MetricsHandler()
-	
+
 	req, err := http.NewRequest("GET", "/metrics", nil)
 	if err != nil {
 		t.Fatal(err)

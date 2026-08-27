@@ -28,7 +28,7 @@ func TestRunSuccess(t *testing.T) {
 
 	// Wait a moment for server to start, then kill it
 	time.Sleep(100 * time.Millisecond)
-	
+
 	// Send SIGINT to trigger shutdown
 	quit <- os.Interrupt
 

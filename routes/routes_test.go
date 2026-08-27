@@ -53,7 +53,7 @@ func TestRegister(t *testing.T) {
 	// Test /api/auth (route-specific limit)
 	reqAuth, _ := http.NewRequest("GET", "/api/auth", nil)
 	reqAuth.RemoteAddr = "10.0.0.1:1234"
-	
+
 	// First request - OK
 	rrAuth1 := httptest.NewRecorder()
 	mux.ServeHTTP(rrAuth1, reqAuth)

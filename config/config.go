@@ -13,11 +13,11 @@ type RouteLimit struct {
 }
 
 type Config struct {
-	RedisURL    string
-	Port        string
+	RedisURL       string
+	Port           string
 	DefaultLimit   int
 	DefaultWindowS int
-	Routes      []RouteLimit
+	Routes         []RouteLimit
 }
 
 func Load() *Config {
@@ -36,13 +36,17 @@ func Load() *Config {
 }
 
 func getEnv(k, def string) string {
-	if v := os.Getenv(k); v != "" { return v }
+	if v := os.Getenv(k); v != "" {
+		return v
+	}
 	return def
 }
 
 func getInt(k string, def int) int {
 	if v := os.Getenv(k); v != "" {
-		if i, err := strconv.Atoi(strings.TrimSpace(v)); err == nil { return i }
+		if i, err := strconv.Atoi(strings.TrimSpace(v)); err == nil {
+			return i
+		}
 	}
 	return def
 }

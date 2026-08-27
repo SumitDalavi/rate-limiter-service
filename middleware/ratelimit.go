@@ -89,14 +89,20 @@ func (rl *RateLimiter) Middleware(limit, windowS int, keyFn func(*http.Request) 
 // IPKeyFn extracts the client IP as the rate-limit key.
 func IPKeyFn(r *http.Request) string {
 	ip := r.Header.Get("X-Forwarded-For")
-	if ip == "" { ip = r.RemoteAddr }
-	if idx := strings.LastIndex(ip, ":"); idx != -1 { ip = ip[:idx] }
+	if ip == "" {
+		ip = r.RemoteAddr
+	}
+	if idx := strings.LastIndex(ip, ":"); idx != -1 {
+		ip = ip[:idx]
+	}
 	return ip
 }
 
 // APIKeyFn extracts the X-API-Key header as the rate-limit key.
 func APIKeyFn(r *http.Request) string {
 	key := r.Header.Get("X-API-Key")
-	if key == "" { return IPKeyFn(r) }
+	if key == "" {
+		return IPKeyFn(r)
+	}
 	return key
 }

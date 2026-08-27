@@ -9,10 +9,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/go-redis/redis/v8"
 	"github.com/SumitDalavi/rate-limiter-service/config"
 	"github.com/SumitDalavi/rate-limiter-service/middleware"
 	"github.com/SumitDalavi/rate-limiter-service/routes"
+	"github.com/go-redis/redis/v8"
 )
 
 var quit = make(chan os.Signal, 1)
