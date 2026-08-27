@@ -15,18 +15,22 @@ import (
 	"github.com/SumitDalavi/rate-limiter-service/routes"
 )
 
-func main() {
+var quit = make(chan os.Signal, 1)
+
+func run() int {
 	cfg := config.Load()
 
 	// Connect to Redis
 	opts, err := redis.ParseURL(cfg.RedisURL)
 	if err != nil {
-		log.Fatalf("invalid REDIS_URL: %v", err)
+		log.Printf("invalid REDIS_URL: %v", err)
+		return 1
 	}
 	rdb := redis.NewClient(opts)
 	ctx := context.Background()
 	if _, err := rdb.Ping(ctx).Result(); err != nil {
-		log.Fatalf("cannot connect to Redis: %v", err)
+		log.Printf("cannot connect to Redis: %v", err)
+		return 1
 	}
 	log.Println("[main] connected to Redis:", cfg.RedisURL)
 
@@ -44,11 +48,11 @@ func main() {
 	log.Printf("[main] rate limiter listening on :%s (default limit: %d req/%ds)",
 		cfg.Port, cfg.DefaultLimit, cfg.DefaultWindowS)
 
-	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatal(err)
+			log.Printf("server error: %v", err)
+			quit <- syscall.SIGTERM // trigger shutdown
 		}
 	}()
 	<-quit
@@ -56,4 +60,9 @@ func main() {
 	defer cancel()
 	srv.Shutdown(shutCtx)
 	log.Println("[main] shutdown complete")
+	return 0
+}
+
+func main() {
+	os.Exit(run())
 }

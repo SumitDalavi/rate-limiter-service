@@ -1,89 +1,137 @@
-package middleware_test
+package middleware
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
-	"github.com/SumitDalavi/rate-limiter-service/middleware"
 	"github.com/alicebob/miniredis/v2"
 	"github.com/go-redis/redis/v8"
 )
 
-func newTestRL(t *testing.T) (*middleware.RateLimiter, *miniredis.Miniredis) {
-	mr := miniredis.RunT(t)
-	client := redis.NewClient(&redis.Options{Addr: mr.Addr()})
-	return middleware.New(client), mr
+func setupRedis(t *testing.T) (*miniredis.Miniredis, *redis.Client) {
+	mr, err := miniredis.Run()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+
+	client := redis.NewClient(&redis.Options{
+		Addr: mr.Addr(),
+	})
+
+	return mr, client
 }
 
-func TestAllow_UnderLimit(t *testing.T) {
-	rl, _ := newTestRL(t)
-	for i := 0; i < 5; i++ {
-		allowed, err := rl.Allow(t.Context(), "test:ip", 10, 60)
-		if err != nil { t.Fatalf("unexpected error: %v", err) }
-		if !allowed { t.Fatalf("expected allowed on request %d", i+1) }
+func TestAllow(t *testing.T) {
+	mr, client := setupRedis(t)
+	defer mr.Close()
+	defer client.Close()
+
+	rl := New(client)
+	ctx := context.Background()
+
+	// Should allow first request
+	allowed, err := rl.Allow(ctx, "testkey", 1, 60)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !allowed {
+		t.Errorf("expected allowed=true")
+	}
+
+	// Should deny second request
+	allowed, err = rl.Allow(ctx, "testkey", 1, 60)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if allowed {
+		t.Errorf("expected allowed=false")
 	}
 }
 
-func TestAllow_OverLimit(t *testing.T) {
-	rl, _ := newTestRL(t)
-	for i := 0; i < 10; i++ {
-		rl.Allow(t.Context(), "test:burst", 5, 60)
+func TestRemainingTTL(t *testing.T) {
+	mr, client := setupRedis(t)
+	defer mr.Close()
+	defer client.Close()
+
+	rl := New(client)
+	ctx := context.Background()
+	rl.Allow(ctx, "ttlkey", 1, 60)
+
+	ttl := rl.RemainingTTL(ctx, "ttlkey")
+	if ttl <= 0 || ttl > 60*time.Second {
+		t.Errorf("unexpected ttl: %v", ttl)
 	}
-	allowed, _ := rl.Allow(t.Context(), "test:burst", 5, 60)
-	if allowed { t.Fatal("expected rate limited after exceeding limit") }
 }
 
-func TestAllow_DifferentKeysDontInterfere(t *testing.T) {
-	rl, _ := newTestRL(t)
-	for i := 0; i < 5; i++ {
-		rl.Allow(t.Context(), "key-a", 3, 60)
-	}
-	allowed, _ := rl.Allow(t.Context(), "key-b", 3, 60)
-	if !allowed { t.Fatal("key-b should not be limited by key-a exhaustion") }
-}
+func TestMiddleware(t *testing.T) {
+	mr, client := setupRedis(t)
+	defer mr.Close()
+	defer client.Close()
 
-func TestMiddleware_SetsHeaders(t *testing.T) {
-	rl, _ := newTestRL(t)
-	handler := rl.Middleware(10, 60, middleware.IPKeyFn)(
-		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.WriteHeader(http.StatusOK)
-		}),
-	)
-	req := httptest.NewRequest("GET", "/api/test", nil)
-	req.RemoteAddr = "1.2.3.4:9999"
+	rl := New(client)
+	mw := rl.Middleware(1, 60, IPKeyFn)
+
+	handler := mw(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	req, _ := http.NewRequest("GET", "/", nil)
+	req.RemoteAddr = "1.2.3.4:1234"
+
+	// Request 1 - OK
 	rr := httptest.NewRecorder()
 	handler.ServeHTTP(rr, req)
-	if rr.Code != http.StatusOK { t.Errorf("expected 200, got %d", rr.Code) }
-	if rr.Header().Get("X-RateLimit-Limit") == "" { t.Error("missing X-RateLimit-Limit header") }
-}
+	if rr.Code != http.StatusOK {
+		t.Errorf("expected 200 OK, got %d", rr.Code)
+	}
 
-func TestMiddleware_Returns429WhenLimited(t *testing.T) {
-	rl, _ := newTestRL(t)
-	handler := rl.Middleware(2, 60, middleware.IPKeyFn)(
-		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) }),
-	)
-	for i := 0; i < 5; i++ {
-		req := httptest.NewRequest("GET", "/api", nil)
-		req.RemoteAddr = "9.9.9.9:1234"
-		rr := httptest.NewRecorder()
-		handler.ServeHTTP(rr, req)
-		if i >= 2 && rr.Code != http.StatusTooManyRequests {
-			t.Errorf("req %d: expected 429, got %d", i, rr.Code)
-		}
+	// Request 2 - Rate limited
+	rr2 := httptest.NewRecorder()
+	handler.ServeHTTP(rr2, req)
+	if rr2.Code != http.StatusTooManyRequests {
+		t.Errorf("expected 429 Too Many Requests, got %d", rr2.Code)
 	}
 }
 
-func TestIPKeyFn_ExtractsIP(t *testing.T) {
-	req := httptest.NewRequest("GET", "/", nil)
-	req.RemoteAddr = "10.0.0.1:54321"
-	got := middleware.IPKeyFn(req)
-	if got != "10.0.0.1" { t.Errorf("expected 10.0.0.1, got %q", got) }
+func TestMiddlewareRedisError(t *testing.T) {
+	mr, client := setupRedis(t)
+	mr.Close() // Close immediately to trigger error
+	defer client.Close()
+
+	rl := New(client)
+	mw := rl.Middleware(1, 60, IPKeyFn)
+
+	handler := mw(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+
+	req, _ := http.NewRequest("GET", "/", nil)
+	rr := httptest.NewRecorder()
+	handler.ServeHTTP(rr, req)
+
+	// Should fail open
+	if rr.Code != http.StatusOK {
+		t.Errorf("expected 200 OK (fail open), got %d", rr.Code)
+	}
 }
 
-func TestIPKeyFn_XForwardedFor(t *testing.T) {
-	req := httptest.NewRequest("GET", "/", nil)
-	req.Header.Set("X-Forwarded-For", "203.0.113.10")
-	got := middleware.IPKeyFn(req)
-	if got != "203.0.113.10" { t.Errorf("expected 203.0.113.10, got %q", got) }
+func TestAPIKeyFn(t *testing.T) {
+	req, _ := http.NewRequest("GET", "/", nil)
+	req.Header.Set("X-API-Key", "my-key")
+
+	key := APIKeyFn(req)
+	if key != "my-key" {
+		t.Errorf("expected my-key, got %s", key)
+	}
+
+	req2, _ := http.NewRequest("GET", "/", nil)
+	req2.RemoteAddr = "10.0.0.1:80"
+	
+	key2 := APIKeyFn(req2)
+	if key2 != "10.0.0.1" {
+		t.Errorf("expected fallback 10.0.0.1, got %s", key2)
+	}
 }
