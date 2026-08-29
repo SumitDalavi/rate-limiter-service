@@ -1,0 +1,17 @@
+{
+  "timestamp": "2026-08-29T11:45:00Z",
+  "dataset": "burst_traffic_100_clients",
+  "metrics": {
+    "total_requests": 15000,
+    "allowed_requests_200": 3000,
+    "rate_limited_requests_429": 12000,
+    "fairness_index_jains": 0.98,
+    "burst_tolerance_capacity_used_percentage": 100,
+    "latency": {
+      "redis_evalsha_avg_ms": 0.45,
+      "p99_latency_ms": 1.2
+    }
+  },
+  "status": "success",
+  "notes": "Dummy benchmark results generated to demonstrate token-bucket burst capability and multi-tenant fairness."
+}

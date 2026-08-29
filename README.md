@@ -1,6 +1,7 @@
 # Distributed Rate Limiter 🚦
 
-> API gateway rate limiting service using Redis Lua scripting for atomic token-bucket operations.
+> **Maturity:** Full Prototype
+> _API gateway rate limiting service using Redis Lua scripting for atomic token-bucket operations._
 
 ## The Problem
 Modern distributed systems require robust, highly concurrent solutions. Simple CRUD applications fail when subjected to high throughput, race conditions, or massive data sets.
@@ -19,6 +20,21 @@ This project implements a production-grade microservice architecture designed to
 ## 🛠️ Tech Stack
 - **Core Technology**: Go, Redis
 - **Architecture**: Microservices, Event-Driven
+
+## Mock Boundaries (Honest Scope)
+
+| What | Status | Details |
+|---|---|---|
+| API Server | **Real** | HTTP Gateway implemented in Go. |
+| Redis Engine | **Real** | Uses local Redis for atomic Lua script evaluation. |
+| Target Upstream | **Mocked** | Proxies to a dummy successful response instead of a real downstream service. |
+
+## 📚 Documentation
+
+- [Architecture](docs/ARCHITECTURE.md) — System diagram and component details
+- [Runbook](docs/runbook.md) — Setup, commands, and expected outputs
+- [Decisions](docs/decisions.md) — ADRs for rate limiting patterns
+- [Changelog](docs/changelog.md) — Change history
 
 ## Decision Log
 | Decision | Rationale |
