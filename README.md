@@ -1,3 +1,6 @@
+> **NOTE:** This repository is an archival lab or partial prototype. It is not actively maintained and should not be used as a reference for production-grade deployments or performance benchmarks.
+
+
 # Distributed Rate Limiter 🚦
 
 > **Maturity:** Full Prototype
@@ -7,7 +10,7 @@
 Modern distributed systems require robust, highly concurrent solutions. Simple CRUD applications fail when subjected to high throughput, race conditions, or massive data sets.
 
 ## The Solution
-This project implements a production-grade microservice architecture designed to handle these specific edge cases. By utilizing advanced paradigms like idempotency keys, advisory locks, or optimized caching layers, this service guarantees data integrity under load.
+This project implements a robust microservice architecture designed to handle these specific edge cases. By utilizing advanced paradigms like idempotency keys, advisory locks, or optimized caching layers, this service guarantees data integrity under load.
 
 ```text
 ┌──────────────┐      ┌───────────────┐      ┌───────────────┐
@@ -81,4 +84,4 @@ curl -X POST http://localhost:8080/api/trigger -H "Content-Type: application/jso
 [GitHub](https://github.com/SumitDalavi) | [LinkedIn](https://in.linkedin.com/in/sumit-dalavi-762838129)
 
 ---
-*Built with a focus on production-grade patterns, not toy demos.*
+*Built with a focus on robust patterns, not toy demos.*
