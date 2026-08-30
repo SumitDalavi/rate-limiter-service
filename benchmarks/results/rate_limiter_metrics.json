@@ -1,0 +1,20 @@
+{
+  "command": "bash benchmarks/run.sh",
+  "environment": {
+    "arch": "amd64",
+    "os": "linux"
+  },
+  "fixture": "5 clients sending 200 requests each against 100 req/s limit",
+  "notes": "Ran via httptest.Server to measure middleware overhead",
+  "results": {
+    "average_latency_ms": 1.342729,
+    "duration_ms": 275,
+    "fairness_index_jains": 0.99,
+    "requests_per_second": 3635.10522902617,
+    "status_200_count": 500,
+    "status_429_count": 500,
+    "total_requests": 1000
+  },
+  "seed": 42,
+  "timestamp": "2026-08-29T19:29:39+05:30"
+}
