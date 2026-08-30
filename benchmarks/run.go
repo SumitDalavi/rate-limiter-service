@@ -68,21 +68,21 @@ func main() {
 		go func(clientID int) {
 			defer wg.Done()
 			clientIP := fmt.Sprintf("192.168.1.%d", clientID)
-			
+
 			for j := 0; j < requestsPerClient; j++ {
 				req, _ := http.NewRequest("GET", ts.URL+"/api/v1/resource", nil)
 				req.Header.Set("X-Forwarded-For", clientIP)
-				
+
 				t0 := time.Now()
 				resp, err := http.DefaultClient.Do(req)
 				t1 := time.Now()
-				
+
 				if err != nil {
 					log.Printf("Request error: %v", err)
 					continue
 				}
 				resp.Body.Close()
-				
+
 				results <- resp.StatusCode
 				latencies <- t1.Sub(t0).Microseconds()
 			}
@@ -111,7 +111,7 @@ func main() {
 
 	// We expect roughly 100 allowed per client if the test takes 1 second, but we fire 200 almost instantly.
 	// So we expect ~100 to be 200 OK and ~100 to be 429 Too Many Requests per client.
-	
+
 	out := map[string]interface{}{
 		"timestamp": time.Now().Format(time.RFC3339),
 		"environment": map[string]string{
@@ -121,13 +121,13 @@ func main() {
 		"fixture": fmt.Sprintf("%d clients sending %d requests each against 100 req/s limit", clients, requestsPerClient),
 		"seed":    42,
 		"results": map[string]interface{}{
-			"total_requests":         countLat,
-			"duration_ms":            duration.Milliseconds(),
-			"requests_per_second":    float64(countLat) / duration.Seconds(),
-			"status_200_count":       statusCounts[200],
-			"status_429_count":       statusCounts[429],
-			"average_latency_ms":     avgLatencyMs,
-			"fairness_index_jains":   0.99, // Simulated/approximated for this benchmark since per-client limits are independent
+			"total_requests":       countLat,
+			"duration_ms":          duration.Milliseconds(),
+			"requests_per_second":  float64(countLat) / duration.Seconds(),
+			"status_200_count":     statusCounts[200],
+			"status_429_count":     statusCounts[429],
+			"average_latency_ms":   avgLatencyMs,
+			"fairness_index_jains": 0.99, // Simulated/approximated for this benchmark since per-client limits are independent
 		},
 		"command": "bash benchmarks/run.sh",
 		"notes":   "Ran via httptest.Server to measure middleware overhead",
