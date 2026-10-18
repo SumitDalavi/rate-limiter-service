@@ -2,6 +2,10 @@
 
 # Distributed Rate Limiter 🚦
 
+[![CI Pipeline](https://github.com/SumitDalavi/rate-limiter-service/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/SumitDalavi/rate-limiter-service/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/SumitDalavi/rate-limiter-service)](https://github.com/SumitDalavi/rate-limiter-service/releases)
+[![Release Workflow](https://github.com/SumitDalavi/rate-limiter-service/actions/workflows/release.yml/badge.svg)](https://github.com/SumitDalavi/rate-limiter-service/actions/workflows/release.yml)
+
 > **Maturity:** Full Prototype
 > _API gateway rate limiting service using Redis Lua scripting for atomic token-bucket operations._
 
@@ -84,6 +88,15 @@ Executes synthetic load across multiple mock IPs to verify atomic increment prop
 
 ## Known Limitations & Honest Scope
 - **Redis Dependency**: The entire rate limiter is hard-coupled to Redis availability. If Redis fails or experiences high latency, the middleware either blocks all traffic or allows all traffic (depending on the configured fail-open policy).
+
+## 🔒 Release & Security Verification
+
+Every tagged release (*.*.*) triggers an automated DevSecOps release workflow:
+1. **Automated Testing:** Runs go test -v ./... across unit and integration tests.
+2. **Container Image Build:** Builds the service container image (ghcr.io/sumitdalavi/rate-limiter-service:<tag>).
+3. **Vulnerability Scanning:** Scans the container image using [Aqua Security Trivy](https://github.com/aquasecurity/trivy-action) for HIGH and CRITICAL CVEs.
+4. **SBOM Generation:** Generates a Software Bill of Materials (SBOM) in SPDX JSON format (sbom.spdx.json) using [Anchore Syft](https://github.com/anchore/sbom-action).
+5. **GitHub Release Publishing:** Packages release notes and attaches sbom.spdx.json as a verifiable supply-chain asset.
 
 ## 👨‍💻 Author
 **Sumit Dalavi** — Senior DevSecOps / Platform Engineer
