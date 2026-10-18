@@ -104,3 +104,29 @@ Every tagged release (*.*.*) triggers an automated DevSecOps release workflow:
 
 ---
 *Built with a focus on robust patterns, not toy demos.*
+
+## Release & Security Verification
+
+Every tagged release (`v*.*.*`) triggers an automated DevSecOps release workflow:
+1. **Automated Testing:** Runs test suite gates before build.
+2. **Container Image Build:** Builds production container image (`ghcr.io/sumitdalavi/rate-limiter-service:<tag>`).
+3. **Vulnerability Scanning:** Scans the image using [Aqua Security Trivy](https://github.com/aquasecurity/trivy-action) for `HIGH` and `CRITICAL` CVEs.
+4. **SBOM Generation:** Generates a Software Bill of Materials (SBOM) in SPDX JSON format (`sbom.spdx.json`) using [Anchore Syft](https://github.com/anchore/sbom-action).
+5. **GitHub Release Publishing:** Packages release notes and attaches `sbom.spdx.json` as a verifiable supply-chain asset.
+
+### Verifying Releases via GitHub CLI
+```bash
+# View release details
+gh release view v0.1.0 --repo SumitDalavi/rate-limiter-service
+
+# Download and verify SBOM
+gh release download v0.1.0 --repo SumitDalavi/rate-limiter-service --pattern "sbom.spdx.json"
+cat sbom.spdx.json | jq .
+```
+
+## Documentation
+
+- [Architecture](docs/ARCHITECTURE.md)
+- [Runbook](docs/runbook.md)
+- [Decisions](docs/decisions.md)
+- [Changelog](docs/changelog.md)
