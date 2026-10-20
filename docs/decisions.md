@@ -14,3 +14,10 @@ We will use a Redis Lua script to perform the entire read-evaluate-write operati
 - ✅ Completely eliminates race conditions.
 - ✅ Reduces network overhead to a single `EVALSHA` call per request.
 - ⚠️ Logic is tied to Redis and written in Lua rather than Go.
+
+## ADR-002: Progressive Credential Loading (PCL) Architecture
+- **Context:** Production hardening required live backends (PostgreSQL, Redis, OpenAI, Anthropic), but removing mocks would break CI pipelines and create high developer onboarding friction.
+- **Decision:** Implement Progressive Credential Loading. Keep in-memory and local mock heuristics as the default safe baseline, while wrapping external integrations in auto-promoting factory adapters triggered by environment variables.
+- **Consequences:** 
+  - *Pros:* 100% CI pass rate without requiring external secrets; zero setup friction for new contributors; progressive upgrade to production clusters.
+  - *Cons:* Adds lightweight factory abstraction layers and runtime credential detection logic.
