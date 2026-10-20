@@ -1,10 +1,13 @@
 
-
 # Distributed Rate Limiter 🚦
 
 [![CI Pipeline](https://github.com/SumitDalavi/rate-limiter-service/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/SumitDalavi/rate-limiter-service/actions/workflows/ci.yml)
-[![Release](https://img.shields.io/github/v/release/SumitDalavi/rate-limiter-service)](https://github.com/SumitDalavi/rate-limiter-service/releases)
+[![Release](https://img.shields.io/github/v/release/SumitDalavi/rate-limiter-service?color=0969da&label=release&logo=github)](https://github.com/SumitDalavi/rate-limiter-service/releases)
 [![Release Workflow](https://github.com/SumitDalavi/rate-limiter-service/actions/workflows/release.yml/badge.svg)](https://github.com/SumitDalavi/rate-limiter-service/actions/workflows/release.yml)
+[![GHCR Container](https://img.shields.io/badge/ghcr.io-v0.2.0-blue?logo=docker&logoColor=white)](https://github.com/SumitDalavi/rate-limiter-service/pkgs/container/rate-limiter-service)
+[![Go](https://img.shields.io/badge/Go-1.21+-00ADD8?logo=go&logoColor=white)](https://golang.org)
+[![SBOM](https://img.shields.io/badge/SBOM-SPDX%202.3-blueviolet?logo=spdx)](https://github.com/SumitDalavi/rate-limiter-service/releases/tag/v0.2.0)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
 > **Maturity:** Full Prototype
 > _API gateway rate limiting service using Redis Lua scripting for atomic token-bucket operations._
@@ -116,7 +119,8 @@ Executes synthetic load across multiple mock IPs to verify atomic increment prop
 
 ## 🔒 Release & Security Verification
 
-Every tagged release (*.*.*) triggers an automated DevSecOps release workflow:
+Every tagged release (
+*.*.*) triggers an automated DevSecOps release workflow:
 1. **Automated Testing:** Runs go test -v ./... across unit and integration tests.
 2. **Container Image Build:** Builds the service container image (ghcr.io/sumitdalavi/rate-limiter-service:<tag>).
 3. **Vulnerability Scanning:** Scans the container image using [Aqua Security Trivy](https://github.com/aquasecurity/trivy-action) for HIGH and CRITICAL CVEs.
