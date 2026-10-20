@@ -19,6 +19,7 @@ var quit = make(chan os.Signal, 1)
 
 func run() int {
 	cfg := config.Load()
+	config.InitWatcher()
 
 	// Connect to Redis
 	opts, err := redis.ParseURL(cfg.RedisURL)
