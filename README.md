@@ -9,8 +9,7 @@
 [![SBOM](https://img.shields.io/badge/SBOM-SPDX%202.3-blueviolet?logo=spdx)](https://github.com/SumitDalavi/rate-limiter-service/releases/tag/v0.2.0)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
-> **Maturity:** Full Prototype
-> _API gateway rate limiting service using Redis Lua scripting for atomic token-bucket operations._
+> API gateway rate limiting service using Redis Lua scripting for atomic token-bucket operations.
 
 ## The Problem
 Modern distributed systems require robust, highly concurrent solutions. Simple CRUD applications fail when subjected to high throughput, race conditions, or massive data sets.
