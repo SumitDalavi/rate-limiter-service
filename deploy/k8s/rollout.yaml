@@ -1,0 +1,53 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: rate-limiter-service
+  namespace: rate-limiter
+  labels:
+    app.kubernetes.io/name: rate-limiter-service
+    app.kubernetes.io/part-of: distributed-systems
+    environment: staging
+spec:
+  replicas: 5
+  strategy:
+    canary:
+      analysis:
+        templates:
+          - templateName: http-success-rate-analysis
+        args:
+          - name: service-name
+            value: rate-limiter-service
+      steps:
+        - setWeight: 10
+        - pause: { duration: 2m }
+        - setWeight: 25
+        - pause: { duration: 5m }
+        - setWeight: 50
+        - pause: { duration: 5m }
+        - setWeight: 100
+  template:
+    metadata:
+      labels:
+        app: rate-limiter-service
+        app.kubernetes.io/name: rate-limiter-service
+    spec:
+      containers:
+        - name: app
+          image: ghcr.io/sumitdalavi/rate-limiter-service:v0.2.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: http
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          resources:
+            limits:
+              cpu: 500m
+              memory: 256Mi
+            requests:
+              cpu: 100m
+              memory: 64Mi
